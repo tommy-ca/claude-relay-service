@@ -80,7 +80,10 @@ describe('StatsPollingService', () => {
     jest.advanceTimersByTime(5000)
     await Promise.resolve()
 
-    expect(logger.error).toHaveBeenCalledWith('[relay-metrics] stats polling failed:', 'network down')
+    expect(logger.error).toHaveBeenCalledWith(
+      '[relay-metrics] stats polling failed:',
+      'network down'
+    )
     expect(service.getLatestSamples()).toEqual(snapshot.metrics)
   })
 

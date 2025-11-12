@@ -31,9 +31,7 @@ describe('StatsClient', () => {
           res.end(
             JSON.stringify({
               success: true,
-              data: [
-                { model: 'claude', allTokens: 20, costs: { total: 3.5 } }
-              ]
+              data: [{ model: 'claude', allTokens: 20, costs: { total: 3.5 } }]
             })
           )
         } else {

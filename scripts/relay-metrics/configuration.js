@@ -73,7 +73,9 @@ function buildOtlpHeaders(env) {
 
   if (username && username.trim().length > 0) {
     if (!password || password.trim().length === 0) {
-      throw new Error('OTEL_EXPORT_BASIC_AUTH_PASSWORD is required when OTEL_EXPORT_BASIC_AUTH_USERNAME is set')
+      throw new Error(
+        'OTEL_EXPORT_BASIC_AUTH_PASSWORD is required when OTEL_EXPORT_BASIC_AUTH_USERNAME is set'
+      )
     }
 
     const token = Buffer.from(`${username.trim()}:${password.trim()}`, 'utf8').toString('base64')
@@ -131,7 +133,10 @@ function loadConfiguration(env = process.env) {
 
   const credential = resolveCredential(env)
 
-  const otlpUrl = env[OTEL_URL_ENV] && env[OTEL_URL_ENV].trim().length > 0 ? env[OTEL_URL_ENV].trim() : DEFAULTS.otlpUrl
+  const otlpUrl =
+    env[OTEL_URL_ENV] && env[OTEL_URL_ENV].trim().length > 0
+      ? env[OTEL_URL_ENV].trim()
+      : DEFAULTS.otlpUrl
 
   return {
     baseUrl: baseUrl.trim(),
@@ -144,7 +149,10 @@ function loadConfiguration(env = process.env) {
       env[METRIC_PERIOD_ENV] && env[METRIC_PERIOD_ENV].trim().length > 0
         ? env[METRIC_PERIOD_ENV].trim()
         : DEFAULTS.metricsPeriod,
-    statsPollIntervalMs: parseDurationToMs(env[STATS_POLL_INTERVAL_ENV], DEFAULTS.statsPollIntervalMs)
+    statsPollIntervalMs: parseDurationToMs(
+      env[STATS_POLL_INTERVAL_ENV],
+      DEFAULTS.statsPollIntervalMs
+    )
   }
 }
 

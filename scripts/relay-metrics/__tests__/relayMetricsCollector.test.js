@@ -40,14 +40,17 @@ describe('RelayMetricsCollector', () => {
     ]
 
     const statsClient = {
-      fetchCombinedStats: jest.fn()
+      fetchCombinedStats: jest
+        .fn()
         .mockResolvedValueOnce(responses[0])
         .mockResolvedValueOnce(responses[1])
     }
 
     const deriveMetrics = jest
       .fn()
-      .mockImplementation((data) => [{ name: 'relay_requests_total', value: data.userStats.usage.total.requests, attributes: {} }])
+      .mockImplementation((data) => [
+        { name: 'relay_requests_total', value: data.userStats.usage.total.requests, attributes: {} }
+      ])
 
     const collector = new RelayMetricsCollector({
       statsClient,

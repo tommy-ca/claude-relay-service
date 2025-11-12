@@ -117,13 +117,14 @@ const METRIC_DEFINITIONS = [
 
 const DEPLOYMENT_ENVIRONMENT_ATTR =
   SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT || 'deployment.environment'
-const SERVICE_ENDPOINT_ATTR =
-  SemanticResourceAttributes.SERVICE_ENDPOINT || 'service.endpoint'
+const SERVICE_ENDPOINT_ATTR = SemanticResourceAttributes.SERVICE_ENDPOINT || 'service.endpoint'
 
 function createResource(config) {
   const attrs = {
-    [SemanticResourceAttributes.SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || DEFAULT_SERVICE_NAME,
-    [SemanticResourceAttributes.SERVICE_NAMESPACE]: process.env.OTEL_SERVICE_NAMESPACE || DEFAULT_SERVICE_NAMESPACE,
+    [SemanticResourceAttributes.SERVICE_NAME]:
+      process.env.OTEL_SERVICE_NAME || DEFAULT_SERVICE_NAME,
+    [SemanticResourceAttributes.SERVICE_NAMESPACE]:
+      process.env.OTEL_SERVICE_NAMESPACE || DEFAULT_SERVICE_NAMESPACE,
     [SemanticResourceAttributes.SERVICE_VERSION]: process.env.OTEL_SERVICE_VERSION || '1.0.0'
   }
 
@@ -134,7 +135,11 @@ function createResource(config) {
 
   const credentialValue = config.credential?.value
   if (credentialValue) {
-    const instanceId = crypto.createHash('sha256').update(credentialValue).digest('hex').slice(0, 16)
+    const instanceId = crypto
+      .createHash('sha256')
+      .update(credentialValue)
+      .digest('hex')
+      .slice(0, 16)
     attrs[SemanticResourceAttributes.SERVICE_INSTANCE_ID] = instanceId
   }
 
@@ -202,28 +207,31 @@ async function main() {
   const meter = meterProvider.getMeter('claude-relay-metrics')
   const instruments = createInstruments(meter)
 
-  meter.addBatchObservableCallback(async (observableResult) => {
-    try {
-      const samples = relayCollector.getMetrics()
+  meter.addBatchObservableCallback(
+    async (observableResult) => {
+      try {
+        const samples = relayCollector.getMetrics()
 
-      for (const sample of samples) {
-        const instrument = instruments.get(sample.name)
-        if (!instrument) {
-          continue
+        for (const sample of samples) {
+          const instrument = instruments.get(sample.name)
+          if (!instrument) {
+            continue
+          }
+          observableResult.observe(instrument, sample.value, sample.attributes)
         }
-        observableResult.observe(instrument, sample.value, sample.attributes)
-      }
 
-      const stalenessInstrument = instruments.get('relay_stats_staleness_seconds')
-      if (stalenessInstrument) {
-        const lastUpdated = relayCollector.getLastUpdated()
-        const ageSeconds = lastUpdated > 0 ? Math.max(0, (Date.now() - lastUpdated) / 1000) : 0
-        observableResult.observe(stalenessInstrument, ageSeconds, {})
+        const stalenessInstrument = instruments.get('relay_stats_staleness_seconds')
+        if (stalenessInstrument) {
+          const lastUpdated = relayCollector.getLastUpdated()
+          const ageSeconds = lastUpdated > 0 ? Math.max(0, (Date.now() - lastUpdated) / 1000) : 0
+          observableResult.observe(stalenessInstrument, ageSeconds, {})
+        }
+      } catch (error) {
+        console.error('[relay-metrics] collection failed:', error.message)
       }
-    } catch (error) {
-      console.error('[relay-metrics] collection failed:', error.message)
-    }
-  }, [...instruments.values()])
+    },
+    [...instruments.values()]
+  )
 
   console.log('[relay-metrics] metrics publisher is running')
 
